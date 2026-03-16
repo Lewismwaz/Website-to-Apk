@@ -1088,6 +1088,7 @@ The next step is to create `values-night` directory **if it doesn't already exis
 
 15. (a). Right click on `res` directory. Select: `New>Android Resource Directory` and name it: `values-night`.
 (b). Copy from `values` directory, `colors.xml` and `themes.xml` and paste them inside `values-night`. Replace all the code in the files with the one below:
+
 (i). `colors.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>  
