@@ -528,8 +528,9 @@ The `res` directory should now look like this + `anim` directory:
 ![10. New res](images/animStructure.png)
 
 (b). Right-click on `anim` directory then select: New>Animation Resource File:
-![11. Animation Resource](images/animResource.png)
-Give it a filename `fade_in` then click **OK**:
+![11. Animation Resource](images/animResource.png)  
+
+Give it a filename `fade_in` then click **OK**:  
 ![12. Animation Resource](images/fade-in.png)
 
 (c). Repeat the same process to create `pulse` and `scale_up` animation resource files.
@@ -599,7 +600,8 @@ Give it a filename `fade_in` then click **OK**:
 
 10. (a) Expand the `drawable` directory. Right-click on it then select: New> Drawable Resource File:
 ![13. Drawable](images/drawable.png)
-Give it a file name `linear_background`:
+  
+  Give it a file name `linear_background`:  
 ![14. Drawable](images/linearbg.png)
 
 (b). Repeat the same process as 10(a) to create `text_gradient.xml` file.
@@ -883,6 +885,7 @@ The new `drawable` directory structure should now be similar to the one shown be
 
 13. Click to expand `layout` directory (located below `drawable-night`). 
  ![19. Layout folder](images/layout.png)
+
 Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with the one below:
 (a). `activity_main.xml`:
 ```xml
@@ -973,6 +976,7 @@ Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with 
 
 14. (a). Right-click on `values` directory then select: New> Values Resource File:
 ![20. Values file Structure](images/values.png)
+
 Name the file `ic_launcher_background`:
 ![21. Values BG](images/valuesBG.png)
 
@@ -1238,22 +1242,27 @@ In the next window, just click **Finish**:
 ![31. Build](images/menu2.png)
 (c). Select `Apk` then click **Next**:
 ![32. Signed Apk](images/apk.png)
+
 (d). Select `Create new`:
 ![33. Keystore](images/apk2.png)
 (e). Select `Key store path`:
-![34. Keystore](images/keystore.png)
+![34. Keystore](images/keystore.png)  
+
 (f). Create a new folder inside the root of `YourApp` and call it `KeyStore`:
 ![35. Keystore folder](images/keystore2.png)
 (g). Open the new folder you've just created called `KeyStore`, then provide a File name for your App Signature Key (It's recommended to use `YourAppName`), then click **Save**:
 ![36. Key store](images/keystore3.png)
 (h).  Create a unique password for your Key. ***Use the same password for Alias*** to avoid any confusion. Rename the Alias from `key0` to `YourAppNamekey0`. Fill in the details below accordingly then click **OK**:
-![37. Key store details](images/keystore4.png)
+![37. Key store details](images/keystore4.png)  
+
 (i). Select `Remember passwords` (to ensure you don't a password every time you build new apps) then click **Next**.
-![38. Remember Key store](images/keystore5.png)
+![38. Remember Key store](images/keystore5.png)  
+
 (j). In the next window, select `release` then click **Create**:
-![38. Apk release](images/apk-final.png)
+![38. Apk release](images/apk-final.png)  
+
 (k). Successful Apk Build should look like this (below):
-![39. Apk release Terminal Output](images/final-output.png)
+![39. Apk release Terminal Output](images/final-outpuT.png)
 
 ---
 
