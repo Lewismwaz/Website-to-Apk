@@ -524,8 +524,6 @@ public class SplashActivity extends AppCompatActivity {
 8. (a). Expand the `res` directory. Right-click on it: New>Android Resource Directory. Name it `anim` (as shown below):
 ![8. anim folder](images/anim.png)
 ![9. anim](images/animF.png)
-The `res` directory should now look like this + `anim` directory:
-![10. New res](images/animStructure.png)
 
 (b). Right-click on `anim` directory then select: New>Animation Resource File:
 ![11. Animation Resource](images/animResource.png)  
@@ -533,7 +531,10 @@ The `res` directory should now look like this + `anim` directory:
 Give it a filename `fade_in` then click **OK**:  
 ![12. Animation Resource](images/fade-in.png)
 
-(c). Repeat the same process to create `pulse` and `scale_up` animation resource files.
+(c). Repeat the same process to create `pulse` and `scale_up` animation resource files.  
+
+The `res` directory should now look like this + `anim` directory:
+![10. New res](images/animStructure.png)
 
 ---
 
