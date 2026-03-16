@@ -977,10 +977,12 @@ Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with 
 14. (a). Right-click on `values` directory then select: New> Values Resource File:
 ![20. Values file Structure](images/values.png)
 
-Name the file `ic_launcher_background`:
+Name the file `ic_launcher_background`:  
+
 ![21. Values BG](images/valuesBG.png)
 
-The new `values` structure should be as shown below:
+The new `values` structure should be as shown below:  
+
 ![22. Layout folder](images/ValuesS.png)
 
 (b). Replace **All** the code for `colors.xml`, `ic_launcher_background.xml`, `strings.xml` and `themes.xml` with the one below. *Change only the values where necessary to fit your preference*:
@@ -1244,8 +1246,10 @@ In the next window, just click **Finish**:
 ![32. Signed Apk](images/apk.png)
 
 (d). Select `Create new`:
-![33. Keystore](images/apk2.png)
-(e). Select `Key store path`:
+![33. Keystore](images/apk2.png)  
+
+(e). Select `Key store path`:  
+
 ![34. Keystore](images/keystore.png)  
 
 (f). Create a new folder inside the root of `YourApp` and call it `KeyStore`:
@@ -1255,7 +1259,8 @@ In the next window, just click **Finish**:
 (h).  Create a unique password for your Key. ***Use the same password for Alias*** to avoid any confusion. Rename the Alias from `key0` to `YourAppNamekey0`. Fill in the details below accordingly then click **OK**:
 ![37. Key store details](images/keystore4.png)  
 
-(i). Select `Remember passwords` (to ensure you don't a password every time you build new apps) then click **Next**.
+(i). Select `Remember passwords` (to ensure you don't a password every time you build new apps) then click **Next**.  
+
 ![38. Remember Key store](images/keystore5.png)  
 
 (j). In the next window, select `release` then click **Create**:
