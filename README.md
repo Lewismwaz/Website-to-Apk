@@ -1287,7 +1287,7 @@ In the next window, just click **Finish**:
 
 ---
 
-21. (a). Locate your `Signed Apk` and test it on your mobile device. By default, the `Signed Apk` should be saved in `YourAppName/app/release`. For instance, in this case, inside `C:/Users/LEWIS/MicrooApp/app/release` (as shown below):
+21. (a). Locate your `Signed Apk` and test it on your mobile device. By default, the `Signed Apk` should be saved inside `YourAppName/app/release`. For instance, in this case, inside `C:/Users/LEWIS/MicrooApp/app/release` (as shown below):
 
 ![39. Apk release Terminal Output](images/final-release.png)
 
