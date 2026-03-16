@@ -95,7 +95,7 @@ Features include:
 
 ---
 
-2. Apply the correct details for your app in the following window then click ***Finish***:   ![2. Finish Empty Activity](../assets/images/Android-studio/2.Empty-activity.png)
+2. Apply the correct details for your app in the following window then click ***Finish***:   ![2. Finish Empty Activity](images/2.Empty-activity.png)
 > [!IMPORTANT]
 > 1. `Name` is the name that will be displayed in the android launcher of the app e.g., Tiktok
 > 2. `Package name` should be ***your-site.app-name*** where `your-site` is inverted and `app-name` is in lowercase. For instance, if *your site*= `lewismwaz.com` and *app-name*=MicrooApp, then `Package name` should be `com.lewismwaz.microoapp`.
@@ -107,19 +107,19 @@ Features include:
 ---
 
 3. Wait till ***Generating sources*** and ***Importing Gradle Project*** (shown at the bottom) is complete. You'll get a notification (bottom-right) "*Microsoft Defender may affect IDE*". Select **Exclude Folders**. When done, change the `Android` view to `Project` view (as shown below) by clicking in the area marked with a green arrow:
-![3. Project View](../assets/images/Android-studio/3.Project-view.png)
+![3. Project View](images/3.Project-view.png)
 You should get a view similar to the one below. Click the drop-downs as shown with the arrows (red to expand) and (green to collapse). You should see a folder inside `java` with a typical package name as the one below:
-![4. Project View](../assets/images/Android-studio/3.Project-view2.png)
+![4. Project View](images/3.Project-view2.png)
 
 ---
 
 4. (a). Right-click on the `package name` (in this case: *ke.co.lewismwaz.microoapp*) then select: New>Activity>Empty Views Activity. Rename the Activity Name to `MainActivity`. Leave all the other options as shown below then click **Finish**: 
-![5. MainActivity](../assets/images/Android-studio/Views-activity.png)
-![6. MainActivity Options](../assets/images/Android-studio/Views-activity2.png)
+![5. MainActivity](images/Views-activity.png)
+![6. MainActivity Options](images/Views-activity2.png)
 (b). Right-click on the `package name` again, then select: `New >Activity>Empty Views Activity`, type `SplashActivity` then press Enter. Activity name should be `SplashActivity`. Same options just like for `MainActivity` in 4(a) above. Click **Finish**.
 (c). Right-click on the `package name` again, then select: `New >Java Class`, type `NetworkUtils` then press Enter. 
 You should end up with something like (below):
-![7. MainActivity](../assets/images/Android-studio/MainActivity.png)
+![7. MainActivity](images/MainActivity.png)
 
 ---
 
@@ -522,15 +522,15 @@ public class SplashActivity extends AppCompatActivity {
 ---
 
 8. Expand the `res` directory. Right-click on it: New>Android Resource Directory. Name it `anim` (as shown below):
-![8. anim folder](../assets/images/Android-studio/anim.png)
-![9. anim](../assets/images/Android-studio/animF.png)
+![8. anim folder](images/anim.png)
+![9. anim](images/animF.png)
 The `res` directory should now look like this + `anim` directory:
-![10. New res](../assets/images/Android-studio/animStructure.png)
+![10. New res](images/animStructure.png)
 
 (b). Right-click on `anim` directory then select: New>Animation Resource File:
-![11. Animation Resource](../assets/images/Android-studio/animResource.png)
+![11. Animation Resource](images/animResource.png)
 Give it a filename `fade_in` then click **OK**:
-![12. Animation Resource](../assets/images/Android-studio/fade-in.png)
+![12. Animation Resource](images/fade-in.png)
 
 (c). Repeat the same process to create `pulse` and `scale_up` animation resource files.
 
@@ -598,22 +598,22 @@ Give it a filename `fade_in` then click **OK**:
 ---
 
 10. (a) Expand the `drawable` directory. Right-click on it then select: New> Drawable Resource File:
-![13. Drawable](../assets/images/Android-studio/drawable.png)
+![13. Drawable](images/drawable.png)
 Give it a file name `linear_background`:
-![14. Drawable](../assets/images/Android-studio/linearbg.png)
+![14. Drawable](images/linearbg.png)
 
 (b). Repeat the same process as 10(a) to create `text_gradient.xml` file.
 
 (c). Create a *logo* (image) with a transparent-background for your app. When you already have the app logo, to freely remove image background head here 👉 [Remove.bg](https://remove.bg) , upload your logo, then click the button `Download Preview` to download your no-bg-logo. Resize the logo image to be small for small/mobile devices (Recommended size: 150X150). The image file must be a ***.png*** file. Rename the image as `logo` thus should be logo.png, then copy it and paste it inside `drawable` directory.
 
 The new `drawable` directory structure should now be similar to the one shown below:
-![15. Drawable](../assets/images/Android-studio/drawableF.png)
+![15. Drawable](images/drawableF.png)
 
 ---
 
 
 ***NB:*** For the next step (11), ensure to switch to `Code` view as shown below:
-![16. Drawable](../assets/images/Android-studio/codeView.png)
+![16. Drawable](images/codeView.png)
 
 11. Replace **All** the code in the files `ic_launcher_background.xml`, `ic_launcher_foreground.xml`, `linear_background.xml` and `text_gradient.xml` with the code below:
 > [!NOTE]
@@ -833,8 +833,8 @@ The new `drawable` directory structure should now be similar to the one shown be
 ---
 
 12. (a). Expand the `res` directory. Right-click on it: New>Android Resource Directory (as shown below). Name the Directory `drawable-night` then click **OK**. This should the store files responsible for the styling (Text & Background) of the Splash Screen in Dark-mode:
-![17. Drawable-night folder](../assets/images/Android-studio/drawableNight.png)
-![18. Drawable night folder](../assets/images/Android-studio/drawableNight2.png)
+![17. Drawable-night folder](images/drawableNight.png)
+![18. Drawable night folder](images/drawableNight2.png)
 
 (b). Next, you need to copy from `drawable`: *linear_background.xml* and *text_gradient.xml* then, paste them inside `drawable-night`. Replace **All** the code in the files with the one below. Ensure to switch to `Code` view!:
 (i). `linear_background.xml`:
@@ -882,7 +882,7 @@ The new `drawable` directory structure should now be similar to the one shown be
 ---
 
 13. Click to expand `layout` directory (located below `drawable-night`). 
- ![19. Layout folder](../assets/images/Android-studio/layout.png)
+ ![19. Layout folder](images/layout.png)
 Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with the one below:
 (a). `activity_main.xml`:
 ```xml
@@ -972,12 +972,12 @@ Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with 
 ---
 
 14. (a). Right-click on `values` directory then select: New> Values Resource File:
-![20. Values file Structure](../assets/images/Android-studio/values.png)
+![20. Values file Structure](images/values.png)
 Name the file `ic_launcher_background`:
-![21. Values BG](../assets/images/Android-studio/valuesBG.png)
+![21. Values BG](images/valuesBG.png)
 
 The new `values` structure should be as shown below:
-![22. Layout folder](../assets/images/Android-studio/valuesS.png)
+![22. Layout folder](images/valuesS.png)
 
 (b). Replace **All** the code for `colors.xml`, `ic_launcher_background.xml`, `strings.xml` and `themes.xml` with the one below. *Change only the values where necessary to fit your preference*:
 (i). `colors.xml`:
@@ -1162,7 +1162,7 @@ The next step is to create `values-night` directory **if it doesn't already exis
 ---
 
 17. Open `AndroidManifest.xml`:
-![23. Android Manifest](../assets/images/Android-studio/Androidmanifest.png)
+![23. Android Manifest](images/Androidmanifest.png)
 
 Replace all the code inside `AndroidManifest.xml` with the one below. Ensure the value for `android:theme="@style/Theme.MicrooApp"` matches `YourAppName`:
 ```xml
@@ -1213,52 +1213,52 @@ Replace all the code inside `AndroidManifest.xml` with the one below. Ensure the
 ---
 
 18. Build the Project Gradle by clicking `Build` (Left of screen) then click the sync icon (As shown below). Ensure Build is successful (having followed all previous steps correctly) otherwise fix any errors displayed in the Terminal Window:
-![24. Android Manifest](../assets/images/Android-studio/gradle.png)
-![25. Build Success](../assets/images/Android-studio/output.png)
+![24. Android Manifest](images/gradle.png)
+![25. Build Success](images/output.png)
 
 ---
 
 19. Let's Create customized App Icons.   
 (a). Right-click on `mipmap-anydpi-v26` then select: New> Image Asset.
-![26. Mipmap](../assets/images/Android-studio/mipmap.png)
+![26. Mipmap](images/mipmap.png)
 
 (b). In the next window, customize the size of App Icon and also App icon image using the `Options`, `Background Layer` and `Foreground Layer`. Choose a suitable App logo-image with no-background by choosing from `Path`. Scroll down the `Foreground Layer` in the section `Scaling` and resize the logo perfectly. When satisfied click **Next**:
-![27. Customize App Icon](../assets/images/Android-studio/icon.png)
-![28. Customize App Icon](../assets/images/Android-studio/icon2.png)
+![27. Customize App Icon](images/icon.png)
+![28. Customize App Icon](images/icon2.png)
 
 In the next window, just click **Finish**:
-![29. Customize App Icon](../assets/images/Android-studio/icon3.png)
+![29. Customize App Icon](images/icon3.png)
 
 ---
 
 20. Now you need to create a unique `Apk signature` that every PlayStore app MUST have, then your Apk. Follow the onscreen instructions below:
 (a). Click on the `Main Menu` button (as shown below).
-![30. Main menu](../assets/images/Android-studio/Menu.png)
+![30. Main menu](images/Menu.png)
 (b). Select `Build`>`Generate Signed App Bundle or Apk`:
-![31. Build](../assets/images/Android-studio/menu2.png)
+![31. Build](images/menu2.png)
 (c). Select `Apk` then click **Next**:
-![32. Signed Apk](../assets/images/Android-studio/apk.png)
+![32. Signed Apk](images/apk.png)
 (d). Select `Create new`:
-![33. Keystore](../assets/images/Android-studio/apk2.png)
+![33. Keystore](images/apk2.png)
 (e). Select `Key store path`:
-![34. Keystore](../assets/images/Android-studio/keystore.png)
+![34. Keystore](images/keystore.png)
 (f). Create a new folder inside the root of `YourApp` and call it `KeyStore`:
-![35. Keystore folder](../assets/images/Android-studio/keystore2.png)
+![35. Keystore folder](images/keystore2.png)
 (g). Open the new folder you've just created called `KeyStore`, then provide a File name for your App Signature Key (It's recommended to use `YourAppName`), then click **Save**:
-![36. Key store](../assets/images/Android-studio/keystore3.png)
+![36. Key store](images/keystore3.png)
 (h).  Create a unique password for your Key. ***Use the same password for Alias*** to avoid any confusion. Rename the Alias from `key0` to `YourAppNamekey0`. Fill in the details below accordingly then click **OK**:
-![37. Key store details](../assets/images/Android-studio/keystore4.png)
+![37. Key store details](images/keystore4.png)
 (i). Select `Remember passwords` (to ensure you don't a password every time you build new apps) then click **Next**.
-![38. Remember Key store](../assets/images/Android-studio/keystore5.png)
+![38. Remember Key store](images/keystore5.png)
 (j). In the next window, select `release` then click **Create**:
-![38. Apk release](../assets/images/Android-studio/apk-final.png)
+![38. Apk release](images/apk-final.png)
 (k). Successful Apk Build should look like this (below):
-![39. Apk release Terminal Output](../assets/images/Android-studio/final-output.png)
+![39. Apk release Terminal Output](images/final-output.png)
 
 ---
 
 21. (a). Locate your `Signed Apk` and test it on your mobile device. By default, the `Signed Apk` should be saved for instance (in this case), inside `C:/Users/LEWIS/MicrooApp/app/release` (as shown below):
-![39. Apk release Terminal Output](../assets/images/Android-studio/final-release.png)
+![39. Apk release Terminal Output](images/final-release.png)
  (b). Send yourself a copy of  your `app-release.apk` to your mobile device, install and Test. 
  > [!NOTE]
  > Having followed all the instructions, your installed App should look professional with a Native feel unlike typical websites (even though it's actually a website).
