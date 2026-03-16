@@ -538,6 +538,7 @@ Give it a filename `fade_in` then click **OK**:
 ---
 
 9. Replace **All** the code in the files `fade_in.xml`, `pulse.xml` and `scale_up.xml` with the code below:
+   
 (a). `fade_in.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>  
