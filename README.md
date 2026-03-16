@@ -840,7 +840,8 @@ The new `drawable` directory structure should now be similar to the one shown be
 ![17. Drawable-night folder](images/drawableNight.png)
 ![18. Drawable night folder](images/drawableNight2.png)
 
-(b). Next, you need to copy from `drawable`: *linear_background.xml* and *text_gradient.xml* then, paste them inside `drawable-night`. Replace **All** the code in the files with the one below. Ensure to switch to `Code` view!:
+(b). Next, you need to copy from `drawable`: *linear_background.xml* and *text_gradient.xml* then, paste them inside `drawable-night`. Replace **All** the code in the files with the one below. Ensure to switch to `Code` view!:  
+
 (i). `linear_background.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>  
