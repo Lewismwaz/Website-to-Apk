@@ -981,7 +981,7 @@ Name the file `ic_launcher_background`:
 ![21. Values BG](images/valuesBG.png)
 
 The new `values` structure should be as shown below:
-![22. Layout folder](images/valueS.png)
+![22. Layout folder](images/ValuesS.png)
 
 (b). Replace **All** the code for `colors.xml`, `ic_launcher_background.xml`, `strings.xml` and `themes.xml` with the one below. *Change only the values where necessary to fit your preference*:
 (i). `colors.xml`:
@@ -1268,6 +1268,7 @@ In the next window, just click **Finish**:
 
 21. (a). Locate your `Signed Apk` and test it on your mobile device. By default, the `Signed Apk` should be saved for instance (in this case), inside `C:/Users/LEWIS/MicrooApp/app/release` (as shown below):
 ![39. Apk release Terminal Output](images/final-release.png)
+
  (b). Send yourself a copy of  your `app-release.apk` to your mobile device, install and Test. 
  > [!NOTE]
  > Having followed all the instructions, your installed App should look professional with a Native feel unlike typical websites (even though it's actually a website).
