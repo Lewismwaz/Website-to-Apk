@@ -125,236 +125,236 @@ You should end up with something like (below):
 
 5. (a). Open `MainActivity.java`. Replace all the code **below** the package (in this case "*package ke.co.ke.lewismwaz.microoapp;*") with:
 ```java
-import android.Manifest;  
-import android.annotation.SuppressLint;  
-import android.app.DownloadManager;  
-import android.content.Intent;  
-import android.net.Uri;  
-import android.os.Build;  
-import android.os.Bundle;  
-import android.os.Environment;  
-import android.print.PrintAttributes;  
-import android.print.PrintManager;  
-import android.view.View;  
-import android.webkit.CookieManager;  
-import android.webkit.JavascriptInterface;  
-import android.webkit.PermissionRequest;  
-import android.webkit.URLUtil;  
-import android.webkit.ValueCallback;  
-import android.webkit.WebChromeClient;  
-import android.webkit.WebResourceRequest;  
-import android.webkit.WebSettings;  
-import android.webkit.WebView;  
-import android.webkit.WebViewClient;  
-import android.widget.Toast;  
-  
-import androidx.activity.OnBackPressedCallback;  
-import androidx.activity.result.ActivityResultLauncher;  
-import androidx.activity.result.contract.ActivityResultContracts;  
-import androidx.appcompat.app.AlertDialog;  
-import androidx.appcompat.app.AppCompatActivity;  
-import androidx.core.app.ActivityCompat;  
-  
-public class MainActivity extends AppCompatActivity {  
-  
-    private static final String WEBSITE_URL = "https://lewismwaz.co.ke/index.php";  
-    private static final int PERMISSION_REQUEST_CODE = 101;  
-  
-    private WebView webView;  
-    private ValueCallback<Uri[]> fileUploadCallback;  
-  
-    /* ---------- FILE PICKER (MODERN API) ---------- */  
-    private final ActivityResultLauncher<Intent> fileChooserLauncher =  
-            registerForActivityResult(  
-                    new ActivityResultContracts.StartActivityForResult(),  
-                    result -> {  
-                        if (fileUploadCallback == null) return;  
-  
-                        Uri[] uris = WebChromeClient.FileChooserParams  
-                                .parseResult(result.getResultCode(), result.getData());  
-  
-                        fileUploadCallback.onReceiveValue(uris);  
-                        fileUploadCallback = null;  
-                    }  
-            );  
-  
-    @SuppressLint("SetJavaScriptEnabled")  
-    @Override  
-    protected void onCreate(Bundle savedInstanceState) {  
-        super.onCreate(savedInstanceState);  
-  
-        if (getSupportActionBar() != null) getSupportActionBar().hide();  
-  
-        setContentView(R.layout.activity_main);  
-        webView = findViewById(R.id.webView);  
-  
-        requestRuntimePermissions();  
-        setupWebView();  
-        loadWebsite();  
-        setupBackPressedHandler();  
-        setupDownloads();  
-    }  
-  
-    /* ---------- PERMISSIONS ---------- */  
-    private void requestRuntimePermissions() {  
-        if (Build.VERSION.SDK_INT >= 33) {  
-            ActivityCompat.requestPermissions(  
-                    this,  
-                    new String[]{  
-                            Manifest.permission.CAMERA,  
-                            Manifest.permission.RECORD_AUDIO,  
-                            Manifest.permission.POST_NOTIFICATIONS  
-                    },  
-                    PERMISSION_REQUEST_CODE  
-            );  
-        }  
-    }  
-  
-    /* ---------- WEBVIEW SETUP ---------- */  
-    @SuppressLint("SetJavaScriptEnabled")  
-    private void setupWebView() {  
-        WebSettings settings = webView.getSettings();  
-  
-        settings.setJavaScriptEnabled(true);  
-        settings.setDomStorageEnabled(true);  
-        settings.setMediaPlaybackRequiresUserGesture(false);  
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);  
-  
-        settings.setUseWideViewPort(true);  
-        settings.setLoadWithOverviewMode(true);  
-  
-        settings.setBuiltInZoomControls(false);  
-        settings.setDisplayZoomControls(false);  
-  
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);  
-  
-        // JavaScript bridge for printing  
-        webView.addJavascriptInterface(new WebAppBridge(), "Android");  
-  
-        webView.setWebViewClient(new NativeWebViewClient());  
-        webView.setWebChromeClient(new NativeWebChromeClient());  
-    }  
-  
-    /* ---------- LOAD SITE ---------- */  
-    private void loadWebsite() {  
-        if (NetworkUtils.isNetworkAvailable(this)) {  
-            webView.loadUrl(WEBSITE_URL);  
-        } else {  
-            Toast.makeText(this, "No internet connection.", Toast.LENGTH_LONG).show();  
-        }  
-    }  
-  
-    /* ---------- DOWNLOAD SUPPORT ---------- */  
-    private void setupDownloads() {  
-        webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {  
-  
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));  
-            request.setMimeType(mimeType);  
-  
-            String cookies = CookieManager.getInstance().getCookie(url);  
-            request.addRequestHeader("cookie", cookies);  
-            request.addRequestHeader("User-Agent", userAgent);  
-  
-            request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType));  
-            request.setDescription("Downloading...");  
-            request.setNotificationVisibility(  
-                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED  
-            );  
-            request.setDestinationInExternalPublicDir(  
-                    Environment.DIRECTORY_DOWNLOADS,  
-                    URLUtil.guessFileName(url, contentDisposition, mimeType)  
-            );  
-  
-            DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);  
-            dm.enqueue(request);  
-  
-            Toast.makeText(this, "Downloading file...", Toast.LENGTH_SHORT).show();  
-        });  
-    }  
-  
-    /* ---------- BACK BUTTON ---------- */  
-    private void setupBackPressedHandler() {  
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {  
-            @Override  
-            public void handleOnBackPressed() {  
-                if (webView.canGoBack()) {  
-                    webView.goBack();  
-                } else {  
-                    new AlertDialog.Builder(MainActivity.this)  
-                            .setTitle("Exit MicrooApp")  
-                            .setMessage("Do you want to exit?")  
-                            .setPositiveButton("Exit", (d, w) -> finish())  
-                            .setNegativeButton("Cancel", null)  
-                            .show();  
-                }  
-            }  
-        });  
-    }  
-  
-    /* ---------- PRINT IMPLEMENTATION ---------- */  
-    private void printPage() {  
-        PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);  
-  
-        PrintAttributes attributes = new PrintAttributes.Builder()  
-                .setMediaSize(PrintAttributes.MediaSize.ISO_A4)  
-                .setColorMode(PrintAttributes.COLOR_MODE_COLOR)  
-                .build();  
-  
-        printManager.print(  
-                "MicrooApp_Page",  
-                webView.createPrintDocumentAdapter("MicrooApp"),  
-                attributes  
-        );  
-    }  
-  
-    /* ---------- JS → NATIVE BRIDGE ---------- */  
-    private class WebAppBridge {  
-  
-        @JavascriptInterface  
-        @SuppressWarnings("unused")  
-        public void printPage() {  
-            runOnUiThread(MainActivity.this::printPage);  
-        }  
-    }  
-  
-    /* ---------- WEBVIEW CLIENT ---------- */  
-    private static class NativeWebViewClient extends WebViewClient {  
-        @Override  
-        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {  
-            String url = request.getUrl().toString();  
-  
-            if (url.startsWith("tel:")  
-                    || url.startsWith("mailto:")  
-                    || url.startsWith("sms:")) {  
-  
-                view.getContext().startActivity(  
-                        new Intent(Intent.ACTION_VIEW, Uri.parse(url))  
-                );  
-                return true;  
-            }  
-            return false;  
-        }  
-    }  
-  
-    /* ---------- CHROME CLIENT ---------- */  
-    private class NativeWebChromeClient extends WebChromeClient {  
-  
-        @Override  
-        public void onPermissionRequest(PermissionRequest request) {  
-            request.grant(request.getResources());  
-        }  
-  
-        @Override  
-        public boolean onShowFileChooser(  
-                WebView webView,  
-                ValueCallback<Uri[]> filePathCallback,  
-                FileChooserParams fileChooserParams) {  
-  
-            fileUploadCallback = filePathCallback;  
-            fileChooserLauncher.launch(fileChooserParams.createIntent());  
-            return true;  
-        }  
-    }  
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.DownloadManager;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.print.PrintAttributes;
+import android.print.PrintManager;
+import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
+import android.webkit.URLUtil;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+public class MainActivity extends AppCompatActivity {
+
+    private static final String WEBSITE_URL = "https://lewismwaz.co.ke/index.php";
+    private static final int PERMISSION_REQUEST_CODE = 101;
+
+    private WebView webView;
+    private ValueCallback<Uri[]> fileUploadCallback;
+
+    /* ---------- FILE PICKER (MODERN API) ---------- */
+    private final ActivityResultLauncher<Intent> fileChooserLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (fileUploadCallback == null) return;
+
+                        Uri[] uris = WebChromeClient.FileChooserParams
+                                .parseResult(result.getResultCode(), result.getData());
+
+                        fileUploadCallback.onReceiveValue(uris);
+                        fileUploadCallback = null;
+                    }
+            );
+
+    @SuppressLint("SetJavaScriptEnabled")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
+
+        setContentView(R.layout.activity_main);
+        webView = findViewById(R.id.webView);
+
+        requestRuntimePermissions();
+        setupWebView();
+        loadWebsite();
+        setupBackPressedHandler();
+        setupDownloads();
+    }
+
+    /* ---------- PERMISSIONS ---------- */
+    private void requestRuntimePermissions() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{
+                            Manifest.permission.CAMERA,
+                            Manifest.permission.RECORD_AUDIO,
+                            Manifest.permission.POST_NOTIFICATIONS
+                    },
+                    PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    /* ---------- WEBVIEW SETUP ---------- */
+    @SuppressLint("SetJavaScriptEnabled")
+    private void setupWebView() {
+        WebSettings settings = webView.getSettings();
+
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+
+        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+
+        // JavaScript bridge for printing
+        webView.addJavascriptInterface(new WebAppBridge(), "Android");
+
+        webView.setWebViewClient(new NativeWebViewClient());
+        webView.setWebChromeClient(new NativeWebChromeClient());
+    }
+
+    /* ---------- LOAD SITE ---------- */
+    private void loadWebsite() {
+        if (NetworkUtils.isNetworkAvailable(this)) {
+            webView.loadUrl(WEBSITE_URL);
+        } else {
+            Toast.makeText(this, "No internet connection.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /* ---------- DOWNLOAD SUPPORT ---------- */
+    private void setupDownloads() {
+        webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            request.setMimeType(mimeType);
+
+            String cookies = CookieManager.getInstance().getCookie(url);
+            request.addRequestHeader("cookie", cookies);
+            request.addRequestHeader("User-Agent", userAgent);
+
+            request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType));
+            request.setDescription("Downloading...");
+            request.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+            request.setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS,
+                    URLUtil.guessFileName(url, contentDisposition, mimeType)
+            );
+
+            DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            dm.enqueue(request);
+
+            Toast.makeText(this, "Downloading file...", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    /* ---------- BACK BUTTON ---------- */
+    private void setupBackPressedHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Exit MicrooApp")
+                            .setMessage("Do you want to exit?")
+                            .setPositiveButton("Exit", (d, w) -> finish())
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                }
+            }
+        });
+    }
+
+    /* ---------- PRINT IMPLEMENTATION ---------- */
+    private void printPage() {
+        PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
+
+        PrintAttributes attributes = new PrintAttributes.Builder()
+                .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                .build();
+
+        printManager.print(
+                "MicrooApp_Page",
+                webView.createPrintDocumentAdapter("MicrooApp"),
+                attributes
+        );
+    }
+
+    /* ---------- JS → NATIVE BRIDGE ---------- */
+    private class WebAppBridge {
+
+        @JavascriptInterface
+        @SuppressWarnings("unused")
+        public void printPage() {
+            runOnUiThread(MainActivity.this::printPage);
+        }
+    }
+
+    /* ---------- WEBVIEW CLIENT ---------- */
+    private static class NativeWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            String url = request.getUrl().toString();
+
+            if (url.startsWith("tel:")
+                    || url.startsWith("mailto:")
+                    || url.startsWith("sms:")) {
+
+                view.getContext().startActivity(
+                        new Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                );
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /* ---------- CHROME CLIENT ---------- */
+    private class NativeWebChromeClient extends WebChromeClient {
+
+        @Override
+        public void onPermissionRequest(PermissionRequest request) {
+            request.grant(request.getResources());
+        }
+
+        @Override
+        public boolean onShowFileChooser(
+                WebView webView,
+                ValueCallback<Uri[]> filePathCallback,
+                FileChooserParams fileChooserParams) {
+
+            fileUploadCallback = filePathCallback;
+            fileChooserLauncher.launch(fileChooserParams.createIntent());
+            return true;
+        }
+    }
 }
 ```
 
@@ -405,25 +405,25 @@ Replace `MicrooApp_Page` with `YourAppName_Page` and `MicrooApp` with `YourAppNa
 
 6. Open `NetworkUtils.java`. Replace all the code **below** the package (in this case "*package ke.co.ke.lewismwaz.microoapp;*") with:
 ```java
-import android.content.Context;  
-import android.net.ConnectivityManager;  
-import android.net.Network;  
-import android.net.NetworkCapabilities;  
-  
-public class NetworkUtils {  
-    public static boolean isNetworkAvailable(Context context) {  
-        ConnectivityManager connectivityManager =  
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);  
-  
-        if (connectivityManager != null) {  
-            Network network = connectivityManager.getActiveNetwork();  
-            if (network == null) return false;  
-            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);  
-            return capabilities != null &&  
-                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);  
-        }  
-        return false;  
-    }  
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+
+public class NetworkUtils {
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null) {
+            Network network = connectivityManager.getActiveNetwork();
+            if (network == null) return false;
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+            return capabilities != null &&
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        }
+        return false;
+    }
 }
 ```
 
@@ -431,91 +431,114 @@ public class NetworkUtils {
 
 7. Open `SplashActivity.java`. Replace all the code **below** the package (in this case "*package ke.co.ke.lewismwaz.microoapp;*") with:
 ```java
-import androidx.appcompat.app.AppCompatActivity;  
-  
-import android.annotation.SuppressLint;  
-import android.content.Intent;  
-import android.os.Bundle;  
-import android.os.Handler;  
-import android.util.Log;  
-import android.view.Window;  
-import android.view.WindowManager;  
-import android.view.animation.Animation;  
-import android.view.animation.AnimationUtils;  
-import android.widget.ImageView;  
-import android.widget.TextView;  
-  
-@SuppressLint("CustomSplashScreen")  
-public class SplashActivity extends AppCompatActivity {  
-  
-    private static final String TAG = "SplashActivity";  
-    private static final int SPLASH_DURATION = 3000; // 3 seconds  
-  
-    private ImageView logoImageView;  
-    private TextView sloganTextView;  
-  
-    @Override  
-    protected void onCreate(Bundle savedInstanceState) {  
-        super.onCreate(savedInstanceState);  
-  
-        Window window = getWindow();  
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);  
-  
-        setContentView(R.layout.activity_splash);  
-  
-        // Initialize views  
-        logoImageView = findViewById(R.id.logoImageView);  
-        sloganTextView = findViewById(R.id.sloganTextView);  
-  
-        // Start animations  
-        startAnimations();  
-  
-        // Start splash screen timer  
-        startSplashTimer();  
-    }  
-  
-    private void startAnimations() {  
-        // Load animations  
-        Animation scaleUpAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_up);  
-        Animation fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in);  
-        Animation pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse);  
-  
-        // Start logo animation immediately  
-        logoImageView.startAnimation(scaleUpAnimation);  
-  
-        // Start slogan animation with a slight delay  
-        new Handler().postDelayed(() -> {  
-            sloganTextView.startAnimation(fadeInAnimation);  
-  
-            // Start pulsing animation after fade in completes  
-            new Handler().postDelayed(() -> sloganTextView.startAnimation(pulseAnimation), 1500);  
-        }, 500);  
-    }  
-  
-    private void startSplashTimer() {  
-        new Handler().postDelayed(() -> {  
-            try {  
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));  
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);  
-                finish();  
-            } catch (Exception e) {  
-                Log.e(TAG, "Error starting MainActivity: " + e.getMessage(), e);  
-                finish();  
-            }  
-        }, SPLASH_DURATION);  
-    }  
-  
-    @Override  
-    protected void onDestroy() {  
-        // Clear animations to prevent memory leaks  
-        if (logoImageView != null) {  
-            logoImageView.clearAnimation();  
-        }  
-        if (sloganTextView != null) {  
-            sloganTextView.clearAnimation();  
-        }  
-        super.onDestroy();  
-    }  
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
+@SuppressLint("CustomSplashScreen")
+public class SplashActivity extends AppCompatActivity {
+
+    private static final String TAG = "SplashActivity";
+    private static final int SPLASH_DURATION = 3000; // 3 seconds
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable pulseRunnable;
+
+    private ImageView logoImageView;
+    private TextView sloganTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Modern fullscreen / edge-to-edge window setup
+        hideSystemBars();
+
+        setContentView(R.layout.activity_splash);
+
+        // Initialize views
+        logoImageView = findViewById(R.id.logoImageView);
+        sloganTextView = findViewById(R.id.sloganTextView);
+
+        // Start animations
+        startAnimations();
+
+        // Start splash screen timer
+        startSplashTimer();
+    }
+
+    private void hideSystemBars() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+        controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+    }
+
+    private void startAnimations() {
+        Animation scaleUpAnimation = AnimationUtils.loadAnimation(this, R.anim.scale_up);
+        Animation fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        Animation pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse);
+
+        logoImageView.startAnimation(scaleUpAnimation);
+
+        pulseRunnable = () -> sloganTextView.startAnimation(pulseAnimation);
+        Runnable sloganRunnable = () -> {
+            sloganTextView.startAnimation(fadeInAnimation);
+            handler.postDelayed(pulseRunnable, 1500);
+        };
+
+        handler.postDelayed(sloganRunnable, 500);
+    }
+
+    private void startSplashTimer() {
+        Runnable navigateRunnable = () -> {
+            if (isFinishing() || isDestroyed()) {
+                return;
+            }
+            try {
+                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
+                        SplashActivity.this,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                );
+                startActivity(intent, options.toBundle());
+                finish();
+            } catch (Exception e) {
+                Log.e(TAG, "Error starting MainActivity: " + e.getMessage(), e);
+                finish();
+            }
+        };
+
+        handler.postDelayed(navigateRunnable, SPLASH_DURATION);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Clear pending handler messages to prevent memory leaks
+        handler.removeCallbacksAndMessages(null);
+
+        if (logoImageView != null) {
+            logoImageView.clearAnimation();
+        }
+        if (sloganTextView != null) {
+            sloganTextView.clearAnimation();
+        }
+        super.onDestroy();
+    }
 }
 ```
 
@@ -608,7 +631,7 @@ The `res` directory should now look like this + `anim` directory:
 
 (b). Repeat the same process as 10(a) to create `text_gradient.xml` file.
 
-(c). Create a *logo* (image) with a transparent-background for your app. When you already have the app logo, to freely remove image background head here 👉 [Remove.bg](https://remove.bg) , upload your logo, then click the button `Download Preview` to download your no-bg-logo. Resize the logo image to be small for small/mobile devices (Recommended size: 150X150). The image file must be a ***.png*** file. Rename the image as `logo` thus should be logo.png, then copy it and paste it inside `drawable` directory.
+(c). Create a *logo* (image) with a transparent-background for your app. When you already have the app logo, to freely remove image background click here 👉 [Canva Background Remover](https://www.canva.com/features/background-remover/), upload your logo, then download your no-bg-logo. Resize the logo image to be small for small/mobile devices (Recommended size: 150X150). The image file must be a ***.png*** file. Rename the image as `logo` thus should be `logo.png`, then copy it and paste it inside `drawable` directory.
 
 The new `drawable` directory structure should now be similar to the one shown below:
 ![15. Drawable](images/drawableF.png)
@@ -625,212 +648,341 @@ The new `drawable` directory structure should now be similar to the one shown be
 
 (a). `ic_launcher_background.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<vector xmlns:android="http://schemas.android.com/apk/res/android"  
-    android:width="108dp"  
-    android:height="108dp"  
-    android:viewportWidth="108"  
-    android:viewportHeight="108">  
-    <path        android:fillColor="#3DDC84"  
-        android:pathData="M0,0h108v108h-108z" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M9,0L9,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,0L19,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M29,0L29,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M39,0L39,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M49,0L49,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M59,0L59,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M69,0L69,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M79,0L79,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M89,0L89,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M99,0L99,108"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,9L108,9"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,19L108,19"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,29L108,29"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,39L108,39"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,49L108,49"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,59L108,59"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,69L108,69"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,79L108,79"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,89L108,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M0,99L108,99"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,29L89,29"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,39L89,39"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,49L89,49"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,59L89,59"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,69L89,69"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M19,79L89,79"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M29,19L29,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M39,19L39,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M49,19L49,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M59,19L59,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M69,19L69,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
-    <path        android:fillColor="#00000000"  
-        android:pathData="M79,19L79,89"  
-        android:strokeWidth="0.8"  
-        android:strokeColor="#33FFFFFF" />  
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Main background - deep professional blue/gray -->
+    <path
+        android:fillColor="#1A1A2E"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Subtle gradient effect using diagonal overlay -->
+    <path
+        android:fillColor="#16213E"
+        android:pathData="M0,0L108,0L108,54L0,108Z" />
+
+    <!-- Decorative curved accent at bottom -->
+    <path
+        android:fillColor="#0F3460"
+        android:pathData="M0,90 Q27,85 54,90 T108,95 L108,108 L0,108Z" />
+
+    <!-- Top accent line matching login card style -->
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M30,12 L78,12"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <!-- Secondary accent line -->
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M40,16 L68,16"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
+    <!-- Subtle grid pattern for modern aesthetic -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,22L108,22"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,32L108,32"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,42L108,42"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,52L108,52"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,62L108,62"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,72L108,72"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,82L108,82"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+
+    <!-- Vertical grid lines -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M22,0L22,108"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M42,0L42,108"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M62,0L62,108"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M82,0L82,108"
+        android:strokeWidth="0.5"
+        android:strokeColor="#33FFFFFF" />
+
+    <!-- Decorative circular elements for modern feel -->
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M90,20 A3,3 0 1,0 90,20.1"
+        android:strokeWidth="2"
+        android:strokeColor="#E94560" />
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M85,25 A2,2 0 1,0 85,25.1"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <!-- Bottom decorative dots -->
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M54,98 A2,2 0 1,0 54,98.1"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M58,101 A1.5,1.5 0 1,0 58,101.1"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+    <path
+        android:fillColor="#E94560"
+        android:pathData="M50,101 A1.5,1.5 0 1,0 50,101.1"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
 </vector>
 ```
 
 (b). `ic_launcher_foreground.xml`:
 ```xml
-<vector xmlns:android="http://schemas.android.com/apk/res/android"  
-    xmlns:aapt="http://schemas.android.com/aapt"  
-    android:width="108dp"  
-    android:height="108dp"  
-    android:viewportWidth="108"  
-    android:viewportHeight="108">  
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">  
-        <aapt:attr name="android:fillColor">  
-            <gradient                android:endX="85.84757"  
-                android:endY="92.4963"  
-                android:startX="42.9492"  
-                android:startY="49.59793"  
-                android:type="linear">  
-                <item                    android:color="#44000000"  
-                    android:offset="0.0" />  
-                <item                    android:color="#00000000"  
-                    android:offset="1.0" />  
-            </gradient>        </aapt:attr>  
-    </path>    <path        android:fillColor="#FFFFFF"  
-        android:fillType="nonZero"  
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"  
-        android:strokeWidth="1"  
-        android:strokeColor="#00000000" />  
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Modern terminal icon -->
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M54,28 L78,28 L82,40 L82,52 L26,52 L26,40 L30,28 L54,28 Z"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#1A1A2E"
+        android:fillType="nonZero"
+        android:pathData="M32,44 L76,44 L76,50 L32,50 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M50,52 L50,62 L58,62 L58,52 L50,52 Z" />
+
+    <!-- Text simulation -->
+    <path
+        android:fillColor="#333333"
+        android:fillType="nonZero"
+        android:pathData="M51,54 L57,54"
+        android:strokeWidth="0.8"
+        android:strokeColor="#333333" />
+    <path
+        android:fillColor="#333333"
+        android:fillType="nonZero"
+        android:pathData="M51,56 L56,56"
+        android:strokeWidth="0.8"
+        android:strokeColor="#333333" />
+    <path
+        android:fillColor="#333333"
+        android:fillType="nonZero"
+        android:pathData="M51,58 L57,58"
+        android:strokeWidth="0.8"
+        android:strokeColor="#333333" />
+    <path
+        android:fillColor="#333333"
+        android:fillType="nonZero"
+        android:pathData="M52,60 L55,60"
+        android:strokeWidth="0.8"
+        android:strokeColor="#333333" />
+
+    <!-- Keypad buttons -->
+    <path
+        android:fillColor="#0F3460"
+        android:fillType="nonZero"
+        android:pathData="M34,28 C34,28 34,24 38,24 L44,24 L44,28 L34,28 Z" />
+    <path
+        android:fillColor="#0F3460"
+        android:fillType="nonZero"
+        android:pathData="M46,28 L46,24 L52,24 L52,28 L46,28 Z" />
+    <path
+        android:fillColor="#0F3460"
+        android:fillType="nonZero"
+        android:pathData="M54,28 L54,24 L60,24 L60,28 L54,28 Z" />
+    <path
+        android:fillColor="#0F3460"
+        android:fillType="nonZero"
+        android:pathData="M62,28 L62,24 L68,24 L68,28 L62,28 Z" />
+    <path
+        android:fillColor="#0F3460"
+        android:fillType="nonZero"
+        android:pathData="M70,28 L70,24 L74,24 L74,28 L70,28 Z" />
+
+    <!-- Glow effect -->
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M24,36 L84,36"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M78,62 L86,62 L86,68 L78,68 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M81,63 L83,63 L83,67 L81,67 Z" />
+
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M81.5,64 L81.5,65 M82.5,65 L82.5,66"
+        android:strokeWidth="0.6"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M20,68 C20,68 22,64 24,64 L84,64 C86,64 88,66 88,68 L88,72 C88,74 86,76 84,76 L26,76 C24,76 22,74 22,72 L20,68 Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M28,76 L28,80"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#E94560"
+        android:fillType="nonZero"
+        android:pathData="M80,76 L80,80"
+        android:strokeWidth="1.5"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#0F3460"
+        android:pathData="M35,79 A3,3 0 1,1 35,79.1"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
+    <path
+        android:fillColor="#0F3460"
+        android:pathData="M73,79 A3,3 0 1,1 73,79.1"
+        android:strokeWidth="1"
+        android:strokeColor="#E94560" />
+
+    <!-- Decorative gradient overlay for depth -->
+    <path
+        android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#1A000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Clean overlay -->
+    <path
+        android:fillColor="#00FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
 </vector>
 ```
 
 (c). `linear_background.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<shape xmlns:android="http://schemas.android.com/apk/res/android"  
-    android:shape="rectangle">  
-  
-    <corners android:radius="14dp" />  
-  
-    <gradient        android:startColor="@color/ph_primary"  
-        android:endColor="@color/primary_dark"  
-        android:angle="0"  
-        android:type="linear" />  
-  
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="14dp" />
+
+    <gradient
+        android:startColor="@color/ph_primary"
+        android:endColor="@color/primary_dark"
+        android:angle="135"
+        android:type="linear" />
+
 </shape>
 ```
 
 (d). `text_gradient.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<shape xmlns:android="http://schemas.android.com/apk/res/android"  
-    android:shape="rectangle">  
-  
-    <!-- Rounded corners -->  
-    <corners android:radius="12dp" />  
-  
-    <!-- Gradient background -->  
-    <gradient  
-        android:startColor="@color/ph_primary"  
-        android:endColor="@color/primary_dark"  
-        android:angle="0"  
-        android:type="linear" />  
-  
-    <!-- Optional: Add padding inside the shape -->  
-    <padding  
-        android:left="8dp"  
-        android:top="4dp"  
-        android:right="8dp"  
-        android:bottom="4dp" />  
-  
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Rounded corners -->
+    <corners android:radius="12dp" />
+
+    <!-- Gradient background - diagonal for modern feel -->
+    <gradient
+        android:startColor="@color/ph_primary"
+        android:endColor="@color/primary_dark"
+        android:angle="135"
+        android:type="linear" />
+
+    <!-- Optional: Add padding inside the shape -->
+    <padding
+        android:left="8dp"
+        android:top="4dp"
+        android:right="8dp"
+        android:bottom="4dp" />
+
 </shape>
 ```
 
@@ -844,43 +996,44 @@ The new `drawable` directory structure should now be similar to the one shown be
 
 (i). `linear_background.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<shape xmlns:android="http://schemas.android.com/apk/res/android"  
-    android:shape="rectangle">  
-  
-    <corners android:radius="14dp" />  
-  
-    <gradient        android:startColor="@color/primary_dark"  
-        android:endColor="@color/primary_dark_darker"  
-        android:angle="0"  
-        android:type="linear" />  
-  
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="14dp" />
+
+    <gradient
+        android:startColor="@color/ph_primary"
+        android:endColor="@color/primary_dark"
+        android:angle="135"
+        android:type="linear" />
+
 </shape>
 ```
 
 (ii). `text_gradient.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<shape xmlns:android="http://schemas.android.com/apk/res/android"  
-    android:shape="rectangle">  
-  
-    <!-- Rounded corners -->  
-    <corners android:radius="12dp" />  
-  
-    <!-- Gradient background -->  
-    <gradient  
-        android:startColor="@color/ph_primary"  
-        android:endColor="@color/primary_dark"  
-        android:angle="0"  
-        android:type="linear" />  
-  
-    <!-- Optional: Add padding inside the shape -->  
-    <padding  
-        android:left="8dp"  
-        android:top="4dp"  
-        android:right="8dp"  
-        android:bottom="4dp" />  
-  
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Rounded corners -->
+    <corners android:radius="12dp" />
+
+    <!-- Gradient background - diagonal for modern feel -->
+    <gradient
+        android:startColor="@color/ph_primary"
+        android:endColor="@color/primary_dark"
+        android:angle="135"
+        android:type="linear" />
+
+    <!-- Optional: Add padding inside the shape -->
+    <padding
+        android:left="8dp"
+        android:top="4dp"
+        android:right="8dp"
+        android:bottom="4dp" />
+
 </shape>
 ```
 
@@ -893,86 +1046,91 @@ The new `drawable` directory structure should now be similar to the one shown be
 Replace **All** the code for `activity_main.xml` and `activity_splash.xml` with the one below:
 (a). `activity_main.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"  
-    xmlns:app="http://schemas.android.com/apk/res-auto"  
-    xmlns:tools="http://schemas.android.com/tools"  
-    android:id="@+id/main"  
-    android:layout_width="match_parent"  
-    android:layout_height="match_parent"  
-    tools:context=".MainActivity">  
-  
-    <WebView        android:layout_width="fill_parent"  
-        android:layout_height="fill_parent"  
-        android:id="@+id/webView"  
-        android:layout_alignParentTop="true"  
-        android:layout_alignParentStart="true"  
-        android:layout_alignParentBottom="true"  
-        android:layout_alignParentEnd="true"  
-        tools:ignore="MissingConstraints" />  
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <WebView        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/webView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>
 ```
 
 (b). `activity_splash.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"  
-    xmlns:tools="http://schemas.android.com/tools"  
-    android:layout_width="match_parent"  
-    android:layout_height="match_parent"  
-    android:orientation="vertical"  
-    android:gravity="center"  
-    android:background="@drawable/linear_background"  
-    tools:context=".SplashActivity">  
-  
-    <!-- Logo Image -->  
-    <FrameLayout  
-        android:layout_width="wrap_content"  
-        android:layout_height="wrap_content"  
-        android:padding="20dp">  
-  
-        <ImageView            android:id="@+id/logoImageView"  
-            android:layout_width="wrap_content"  
-            android:layout_height="wrap_content"  
-            android:src="@drawable/logo"  
-            android:adjustViewBounds="true"  
-            android:maxWidth="180dp"  
-            android:maxHeight="98dp"  
-            android:scaleType="fitCenter"  
-            android:contentDescription="@string/app_name" />  
-  
-    </FrameLayout>  
-    <!-- Slogan Text with Animation -->  
-    <TextView  
-        android:id="@+id/sloganTextView"  
-        android:layout_width="wrap_content"  
-        android:layout_height="wrap_content"  
-        android:text="@string/slogan"  
-        android:textSize="14dp"  
-        android:textColor="@color/white"  
-        android:textStyle="bold"  
-        android:layout_marginTop="10dp"  
-        android:paddingHorizontal="16dp"  
-        android:paddingVertical="8dp"  
-        android:padding="6dp"  
-        android:fontFamily="sans-serif-condensed"  
-        android:visibility="visible"  
-        android:letterSpacing="0.03"/>  
-  
-    <!-- Progress Bar -->  
-    <ProgressBar  
-        android:layout_width="220dp"  
-        android:layout_height="10dp"  
-        android:layout_gravity="center_horizontal"  
-        style="?android:attr/progressBarStyleHorizontal"  
-        android:max="100"  
-        android:indeterminate="true"  
-        android:progress="0"  
-        android:layout_marginTop="60dp"  
-        android:progressTint="@color/ph_danger"  
-        android:progressBackgroundTint="#33000000"  
-        android:indeterminateTint="@color/ph_danger" />  
-  
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/linear_background"
+    tools:context=".SplashActivity">
+
+    <!-- Logo Image -->
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/logo"
+            android:adjustViewBounds="true"
+            android:maxWidth="180dp"
+            android:maxHeight="98dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/app_name" />
+
+    </FrameLayout>
+
+    <!-- Slogan Text with Animation - For light mode -->
+    <TextView
+        android:id="@+id/sloganTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/slogan"
+        android:textSize="16sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
+        android:fontFamily="sans-serif-condensed"
+        android:visibility="visible"
+        android:letterSpacing="0.05"
+        android:shadowColor="#80000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="3"/>
+
+    <!-- Cool Progress Bar - Modern Style -->
+    <ProgressBar
+        android:layout_width="220dp"
+        android:layout_height="10dp"
+        android:layout_gravity="center_horizontal"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:max="100"
+        android:indeterminate="true"
+        android:progress="0"
+        android:layout_marginTop="60dp"
+        android:progressTint="@color/white"
+        android:progressBackgroundTint="#33FFFFFF"
+        android:indeterminateTint="@color/white"
+        android:indeterminateTintMode="src_atop" />
+
 </LinearLayout>
 ```
 
@@ -992,44 +1150,89 @@ The new `values` structure should be as shown below:
 (b). Replace **All** the code for `colors.xml`, `ic_launcher_background.xml`, `strings.xml` and `themes.xml` with the one below. *Change only the values where necessary to fit your preference*:
 (i). `colors.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<resources>  
-    <!-- Primary Colors -->  
-    <color name="ph_primary">#0072ff</color>  
-    <color name="primary_1">#4361ee</color>  
-    <color name="primary_dark">#3a0ca3</color>  
-    <color name="ph_primary_2">#00c6ff</color>  
-  
-    <!-- Status Colors -->  
-    <color name="ph_success">#00b894</color>  
-    <color name="ph_warning">#f39c12</color>  
-    <color name="ph_danger">#e74c3c</color>  
-  
-    <!-- Surface Colors -->  
-    <color name="ph_surface">#ffffff</color>  
-    <color name="ph_surface_2">#f9fbff</color>  
-  
-    <!-- UI Colors -->  
-    <color name="ph_border">#e6e9f5</color>  
-  
-    <!-- Background Colors -->  
-    <color name="body_background">#f5f7fb</color>  
-    <color name="text_primary">#2d3436</color>  
-    <color name="text_dark">#1f2d3d</color>  
-  
-    <!-- Dark mode color (declare in base for compatibility) -->  
-    <color name="primary_dark_darker">#3a0ca3</color> <!-- Same as primary_dark for light mode -->  
-  
-    <!-- Basic Colors -->    <color name="black">#FF000000</color>  
-    <color name="white">#FFFFFFFF</color>  
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors - Pure Navy Blue Theme -->
+    <color name="ph_primary">#0F3460</color>      <!-- Navy blue - Primary action color -->
+    <color name="primary_1">#16213E</color>       <!-- Lighter navy for hover states -->
+    <color name="primary_dark">#0A1A2E</color>    <!-- Darker navy for pressed states -->
+    <color name="ph_primary_2">#1A365D</color>    <!-- Deep blue accent -->
+
+    <!-- Secondary Colors - Deep Navy Background -->
+    <color name="secondary_dark">#1A1A2E</color>  <!-- Main background -->
+    <color name="secondary_medium">#16213E</color> <!-- Card background -->
+    <color name="secondary_light">#0F3460</color>  <!-- Accent elements -->
+
+    <!-- Status Colors - Navy-compatible -->
+    <color name="ph_success">#2E7D64</color>      <!-- Muted teal-green for success -->
+    <color name="ph_warning">#B8860B</color>      <!-- Dark golden for warnings -->
+    <color name="ph_danger">#8B3A3A</color>       <!-- Muted red for errors -->
+    <color name="ph_info">#2A5F7A</color>         <!-- Steel blue for info -->
+
+    <!-- Surface Colors - Light Mode Cards -->
+    <color name="ph_surface">#FFFFFF</color>      <!-- White cards -->
+    <color name="ph_surface_dark">#2D3748</color>  <!-- Dark gray for light mode (visible) -->
+    <color name="ph_surface_2">#F8F9FC</color>    <!-- Off-white for alternating rows -->
+
+    <!-- Theme Surface Colors (Required by Material Design) -->
+    <color name="colorSurface">#FFFFFF</color>     <!-- Light mode surface color -->
+    <color name="colorOnSurface">#2D3748</color>   <!-- Text color on surfaces -->
+
+    <!-- UI Elements Colors -->
+    <color name="ph_border">#E2E8F0</color>       <!-- Subtle borders -->
+    <color name="ph_divider">#EDF2F7</color>      <!-- Dividers between elements -->
+    <color name="ph_shadow">#1A1A2E</color>       <!-- Shadow color with alpha -->
+
+    <!-- Background Colors -->
+    <color name="body_background">#F0F2F5</color>  <!-- App background -->
+    <color name="text_primary">#2D3748</color>    <!-- Primary text -->
+    <color name="text_secondary">#4A5568</color>  <!-- Secondary text -->
+    <color name="text_hint">#A0AEC0</color>       <!-- Hint/placeholder text -->
+    <color name="text_dark">#1A202C</color>       <!-- Dark text for emphasis -->
+    <color name="text_light">#FFFFFF</color>      <!-- Light text on dark backgrounds -->
+    <color name="text_muted">#718096</color>      <!-- Muted text -->
+
+    <!-- Input Field Colors -->
+    <color name="input_background">#FFFFFF</color>
+    <color name="input_border">#CBD5E0</color>
+    <color name="input_focused_border">#0F3460</color>
+    <color name="input_error_border">#8B3A3A</color>
+
+    <!-- Button Colors -->
+    <color name="button_primary">#0F3460</color>
+    <color name="button_primary_pressed">#0A1A2E</color>
+    <color name="button_secondary">#16213E</color>
+    <color name="button_secondary_pressed">#1A1A2E</color>
+    <color name="button_disabled">#CBD5E0</color>
+
+    <!-- Link Colors -->
+    <color name="link_normal">#0F3460</color>
+    <color name="link_pressed">#0A1A2E</color>
+    <color name="link_visited">#1A365D</color>
+
+    <!-- Dark mode colors (for night theme support) -->
+    <color name="primary_dark_darker">#0A1A2E</color>
+    <color name="dark_background">#1A1A2E</color>
+    <color name="dark_surface">#16213E</color>
+    <color name="dark_text_primary">#F7FAFC</color>
+    <color name="dark_text_secondary">#CBD5E0</color>
+
+    <!-- Basic Colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Overlay Colors -->
+    <color name="overlay_light">#80FFFFFF</color>
+    <color name="overlay_dark">#80000000</color>
 </resources>
 ```
 
 (ii). `ic_launcher_background.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<resources>  
-    <color name="ic_launcher_background">#FFFFFF</color>  
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>
 ```
 
@@ -1045,40 +1248,40 @@ The new `values` structure should be as shown below:
 (iv). `themes.xml`:
 - Replace `Theme.MicrooApp` with `Theme.YourAppName`.
 ```xml
-<resources xmlns:tools="http://schemas.android.com/tools">  
-    <!-- Base application theme. -->  
-    <style name="Theme.MicrooApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">  
-        <!-- Primary brand color. -->  
-        <item name="colorPrimary">@color/ph_primary</item>  
-        <item name="colorPrimaryVariant">@color/primary_dark</item>  
-        <item name="colorOnPrimary">@color/white</item>  
-  
-        <!-- Secondary brand color. -->  
-        <item name="colorSecondary">@color/ph_primary_2</item>  
-        <item name="colorSecondaryVariant">@color/primary_dark</item>  
-        <item name="colorOnSecondary">@color/white</item>  
-  
-        <!-- Background colors -->  
-        <item name="android:colorBackground">@color/body_background</item>  
-  
-        <!-- Surface colors -->  
-        <item name="colorSurface">@color/ph_surface</item>  
-        <item name="colorOnSurface">@color/text_primary</item>  
-  
-        <!-- Status bar color - using primary dark for status bar -->  
-        <item name="android:statusBarColor">@color/primary_dark</item>  
-  
-        <!-- Make status bar icons light (for dark background) -->  
-        <item name="android:windowLightStatusBar">false</item>  
-  
-        <!-- Navigation bar color -->  
-        <item name="android:navigationBarColor">@color/body_background</item>  
-  
-        <!-- App bar/elevation background using linear gradient -->  
-        <item name="android:windowBackground">@drawable/linear_background</item>  
-  
-        <!-- Customize your theme here. -->  
-    </style>  
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme for night/dark mode. -->
+    <style name="Theme.MicrooApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color (consistent coral accent for brand identity) -->
+        <item name="colorPrimary">@color/ph_primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color - Warm orange accent -->
+        <item name="colorSecondary">@color/ph_primary_2</item>
+        <item name="colorSecondaryVariant">@color/primary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Background colors - Deep navy for night mode -->
+        <item name="android:colorBackground">@color/body_background</item>
+
+        <!-- Surface colors - Dark navy surfaces -->
+        <item name="colorSurface">@color/ph_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Status bar color - Transparent to show gradient properly -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Make status bar icons light (for dark background) -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- App bar/elevation background using linear gradient -->
+        <item name="android:windowBackground">@drawable/linear_background</item>
+
+        <!-- Navigation bar color - Match background -->
+        <item name="android:navigationBarColor">@color/body_background</item>
+
+        <!-- Customize your theme here. -->
+    </style>
 </resources>
 ```
 
@@ -1091,58 +1294,106 @@ The next step is to create `values-night` directory **if it doesn't already exis
 
 (i). `colors.xml`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<resources>  
-    <!-- Darker version for night mode gradient -->  
-    <color name="primary_dark_darker">#1A0C5F</color>  
-  
-    <!-- Dark mode adjustments -->  
-    <color name="body_background">#0A0A0A</color>  
-    <color name="text_primary">#E0E0E0</color>  
-    <color name="text_dark">#FFFFFF</color>  
-    <color name="ph_surface">#1A1A1A</color>  
-    <color name="ph_surface_2">#222222</color>  
-    <color name="ph_border">#333333</color>  
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Darker version for night mode gradient - Deep navy base -->
+    <color name="primary_dark_darker">#0F0F1A</color>
+
+    <!-- Modern dark theme [Navy blue] -->
+    <color name="body_background">#1A1A2E</color>
+    <color name="text_primary">#F7FAFC</color>
+    <color name="text_dark">#FFFFFF</color>
+    <color name="ph_surface">#16213E</color>
+    <color name="ph_surface_2">#1E2A47</color>
+    <color name="ph_border">#2A3A5C</color>
+
+    <!-- Additional dark mode refinements -->
+    <color name="text_secondary">#CBD5E0</color>
+    <color name="text_hint">#718096</color>
+    <color name="ph_divider">#2A3A5C</color>
+    <color name="input_background">#0F3460</color>
+    <color name="input_border">#2A3A5C</color>
+
+    <!-- Theme Surface Colors (Required by Material Design) -->
+    <color name="colorSurface">#16213E</color>     <!-- Dark mode surface color -->
+    <color name="colorOnSurface">#F7FAFC</color>   <!-- Text color on dark surfaces -->
+
+    <!-- ============================================ -->
+    <!-- PRIMARY BRAND COLORS - NAVY BLUE THEME ONLY -->
+    <!-- ============================================ -->
+
+    <!-- Primary brand color - Navy blue (no red/coral) -->
+    <color name="ph_primary">#0F3460</color>
+
+    <!-- Primary dark variant - Darker navy -->
+    <color name="primary_dark">#0A1A2E</color>
+
+    <!-- Secondary brand color - Lighter navy accent -->
+    <color name="ph_primary_2">#16213E</color>
+
+    <!-- Basic Colors -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+
+    <!-- Status Colors (Navy-themed) -->
+    <color name="ph_success">#2E7D64</color>
+    <color name="ph_warning">#B8860B</color>
+    <color name="ph_danger">#8B3A3A</color>
+    <color name="ph_info">#2A5F7A</color>
+
+    <!-- Surface Colors -->
+    <color name="ph_surface_dark">#FFFFFF</color>  
 </resources>
 ```
 
 (ii). `themes.xml`:
 - Replace `Theme.MicrooApp` with `Theme.YourAppName`.
 ```xml
-<resources xmlns:tools="http://schemas.android.com/tools">  
-    <!-- Base application theme for night/dark mode. -->  
-    <style name="Theme.MicrooApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">  
-        <!-- Primary brand color (same as day for consistency). -->  
-        <item name="colorPrimary">@color/ph_primary</item>  
-        <item name="colorPrimaryVariant">@color/primary_dark</item>  
-        <item name="colorOnPrimary">@color/white</item>  
-  
-        <!-- Secondary brand color. -->  
-        <item name="colorSecondary">@color/ph_primary_2</item>  
-        <item name="colorSecondaryVariant">@color/primary_dark</item>  
-        <item name="colorOnSecondary">@color/white</item>  
-  
-        <!-- Background colors - darker for night mode -->  
-        <item name="android:colorBackground">@color/body_background</item>  
-  
-        <!-- Surface colors -->  
-        <item name="colorSurface">@color/ph_surface</item>  
-        <item name="colorOnSurface">@color/text_primary</item>  
-  
-        <!-- Status bar color - using primary dark but can be transparent to show gradient -->  
-        <item name="android:statusBarColor">@android:color/transparent</item>  
-  
-        <!-- Make status bar icons light (for dark background) -->  
-        <item name="android:windowLightStatusBar">false</item>  
-  
-        <!-- App bar/elevation background using linear gradient -->  
-        <item name="android:windowBackground">@drawable/linear_background</item>  
-  
-        <!-- Navigation bar color -->  
-        <item name="android:navigationBarColor">@color/body_background</item>  
-  
-        <!-- Customize your theme here. -->  
-    </style>  
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme for night/dark mode. -->
+    <style name="Theme.MicrooApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color - Navy blue -->
+        <item name="colorPrimary">@color/ph_primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/ph_primary_2</item>
+        <item name="colorSecondaryVariant">@color/primary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Background colors - Deep navy for night mode -->
+        <item name="android:colorBackground">@color/body_background</item>
+
+        <!-- Surface colors - Dark navy surfaces -->
+        <item name="colorSurface">@color/ph_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- Alert Dialog Theme - Make buttons white -->
+        <item name="materialAlertDialogTheme">@style/Theme.MicrooApp.AlertDialog</item>
+        <item name="alertDialogTheme">@style/Theme.MicrooApp.AlertDialog</item>
+
+        <!-- Status bar color - Transparent to show gradient properly -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Make status bar icons light (for dark background) -->
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- App bar/elevation background using linear gradient -->
+        <item name="android:windowBackground">@drawable/linear_background</item>
+
+        <!-- Navigation bar color - Match background -->
+        <item name="android:navigationBarColor">@color/body_background</item>
+    </style>
+
+    <!-- Alert Dialog Theme - White buttons for dark mode -->
+    <style name="Theme.MicrooApp.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <!-- Override button colors to white -->
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/ph_primary</item>
+        <item name="colorSurface">@color/ph_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+    </style>
 </resources>
 ```
 
@@ -1168,47 +1419,54 @@ The next step is to create `values-night` directory **if it doesn't already exis
 
 Replace all the code inside `AndroidManifest.xml` with the one below. Ensure the value for `android:theme="@style/Theme.MicrooApp"` matches `YourAppName`:
 ```xml
-<?xml version="1.0" encoding="utf-8"?>  
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"  
-    xmlns:tools="http://schemas.android.com/tools">  
-  
-    <!-- Core -->  
-    <uses-permission android:name="android.permission.INTERNET" />  
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />  
-  
-    <!-- Media / Upload -->  
-    <uses-permission android:name="android.permission.CAMERA" />  
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />  
-  
-    <!-- Storage (legacy support only; scoped storage used) -->  
-    <uses-permission  
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"  
-        android:maxSdkVersion="28" />  
-  
-    <!-- Notifications (Android 13+) -->  
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />  
-  
-    <application        android:allowBackup="true"  
-        android:dataExtractionRules="@xml/data_extraction_rules"  
-        android:fullBackupContent="@xml/backup_rules"  
-        android:icon="@mipmap/ic_launcher"  
-        android:label="@string/app_name"  
-        android:roundIcon="@mipmap/ic_launcher_round"  
-        android:supportsRtl="true"  
-        android:theme="@style/Theme.MicrooApp"  
-        tools:targetApi="36">  
-  
-        <activity            android:name=".SplashActivity"  
-            android:exported="true"  
-            android:screenOrientation="portrait">  
-            <intent-filter>                <action android:name="android.intent.action.MAIN" />  
-                <category android:name="android.intent.category.LAUNCHER" />  
-            </intent-filter>        </activity>  
-        <activity            android:name=".MainActivity"  
-            android:exported="true"  
-            android:screenOrientation="portrait" />  
-  
-    </application>  
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Core -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Media / Upload -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Storage (legacy support only; scoped storage used) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- Notifications (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application 
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MicrooApp"
+        tools:targetApi="36">
+
+        <activity            
+            android:name=".SplashActivity"
+            android:exported="true">
+            <intent-filter>                
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>        
+        </activity>
+        <activity            
+            android:name=".MainActivity"
+            android:exported="true" 
+        />
+    </application>
 </manifest>
 ```
 
