@@ -1559,4 +1559,4 @@ For any inquiries, please contact:
 - Email - <eappointmaster@gmail.com> or <yavotu@gmail.com>
 - GitHub - [@Lewismwaz](https://github.com/Lewismwaz)  or [@Yavotu](https://github.com/Yavotu)
 
-[Website-Apk](https://github.com/Lewismwaz/Website-to-Apk) **©** 2025, All Rights Reserved
+[Website-to-Apk](https://github.com/Lewismwaz/Website-to-Apk) **©** 2025, All Rights Reserved
