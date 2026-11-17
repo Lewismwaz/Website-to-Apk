@@ -1546,7 +1546,7 @@ In the next window, just click **Finish**:
  ## Splash Screen
 
  <p align="center"> 
-     <img src="/images/splash.png" alt="MicrooApp Splash Screen" width="80" height="190" style="vertical-align: middle;">
+     <img src="/images/splash.png" alt="MicrooApp Splash Screen" width="120" height="250" style="vertical-align: middle;">
  </p>
 
 
