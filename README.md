@@ -1545,7 +1545,9 @@ In the next window, just click **Finish**:
  
  ## Splash Screen
 
- ![MicrooApp Splash Screen](images/splash.png)
+ <p align="center"> 
+     <img src="/images/splash.png" alt="MicrooApp Splash Screen" width="80" height="190" style="vertical-align: middle;">
+ </p>
 
 
 ## License
