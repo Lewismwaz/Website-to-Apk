@@ -1549,7 +1549,7 @@ In the next window, just click **Finish**:
 
 
 ## License
-This project is licensed under the GPL License. View License [here](https://github.com/Lewismwaz/Website-to-Apk/blob/main/LICENSE).  
+This project is licensed under the MIT License. View License [here](https://github.com/Lewismwaz/Website-to-Apk/blob/main/LICENSE).  
 More details about the License can be found [here.](https://choosealicense.com/licenses/gpl-3.0/)
 
 ## Contact
