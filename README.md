@@ -1543,4 +1543,18 @@ In the next window, just click **Finish**:
  > [!NOTE]
  > Having followed all the instructions, your installed App should look professional with a Native feel unlike typical websites (even though it's actually a website).
  
- 
+ ## Splash Screen
+
+ ![MicrooApp Splash Screen](images/splash.png)
+
+
+## License
+This project is licensed under the GPL License. View License [here](https://github.com/Lewismwaz/Website-to-Apk/blob/main/LICENSE).  
+More details about the License can be found [here.](https://choosealicense.com/licenses/gpl-3.0/)
+
+## Contact
+For any inquiries, please contact:
+- Email - <eappointmaster@gmail.com> or <yavotu@gmail.com>
+- GitHub - [@Lewismwaz](https://github.com/Lewismwaz)  or [@Yavotu](https://github.com/Yavotu)
+
+[Website-Apk](https://github.com/Lewismwaz/Website-to-Apk) **©** 2026, All Rights Reserved
